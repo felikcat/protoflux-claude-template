@@ -36,7 +36,7 @@ flux-sdk --help
 ## BUILD COMMAND
 
 ```bash
-flux-sdk build -L "/path/to/Resonite/Resonite_Data/Managed/" -d "${workspaceFolder}" file.pg
+flux-sdk build -d "${workspaceFolder}" file.pg
 ```
 
 ### Common Resonite Paths
