@@ -28,13 +28,107 @@ project/
 ## Build Command
 ```bash
 # Build a module from source/ to build/
-flux-sdk build -d build source/ModuleName.pg
+flux-sdk build -o build/ModuleName.pg.brson source/ModuleName.pg
+
+# Build all modules in source/ to build/
+for f in source/*.pg; do flux-sdk build -o "build/$(basename "$f").brson" "$f"; done
 ```
+
+**Important flags:**
+- `-o <path>` - Output file path (use this for build directory)
+- `-d <path>` - Project directory for module resolution (NOT output!)
 
 ## File Extensions
 - `.pg` - ProtoGraph source files (in `source/`)
 - `.brson` - Compiled output for Resonite import (in `build/`)
 - `froox-nodes.yaml` - Authoritative node reference (3400+ nodes, in root)
+
+---
+
+## CRITICAL: Variable Declarations
+
+### Location Matters!
+- **`store`, `sync`, `local` variables go INSIDE `where {}`** - NOT in the module header
+- **`in` and `out` declarations go in the header** - before `where`
+
+```protograph
+module CorrectExample
+
+in InputSlot: Slot        // Header: inputs
+out OutputValue: float    // Header: outputs
+
+where {
+    store MyState: float;     // INSIDE where block
+    sync SharedData: int;     // INSIDE where block
+    local TempValue: float3;  // INSIDE where block
+
+    // ... rest of code
+}
+```
+
+### WRONG - Variables in Header
+```protograph
+module WrongExample
+
+store MyState: float;  // WRONG! Will cause parse error
+
+where {
+    // ...
+}
+```
+
+---
+
+## CRITICAL: Input Types for Resonite
+
+### `element` vs Plain Types
+When declaring slot/component inputs, the keyword affects how users connect in Resonite:
+
+| Declaration | Creates | Resonite UX |
+|-------------|---------|-------------|
+| `in Cube: Slot element` | ElementSource | Harder - must parent object or use specific workflow |
+| `in Cube: Slot` | ReferenceSource | Easier - just drag slot reference to `Reference` field |
+
+**Recommendation:** Use plain `in Name: Slot` for easier Resonite setup unless you specifically need ElementSource behavior.
+
+```protograph
+// EASIER to connect in Resonite
+in TargetSlot: Slot
+
+// HARDER to connect (requires parenting or specific workflow)
+in TargetSlot: Slot element
+```
+
+---
+
+## CRITICAL: Arithmetic Operators
+
+### Use Native Operators - NOT Verbose Nodes
+ProtoGraph supports standard arithmetic operators. **Prefer these over explicit node calls:**
+
+```protograph
+// PREFERRED - clean and readable
+Result = A + B;
+Result = A - B;
+Result = A * B;
+Result = A / B;
+Result = A mod B;
+Combined = (A + 1.0f) * 0.5f - B;
+
+// AVOID - unnecessarily verbose
+Result = ValueAdd<float>(A=A, B=B);
+Result = ValueSub<float>(A=A, B=B);
+Result = ValueMul<float>(A=A, B=B);
+```
+
+### Comparison Operators
+```protograph
+// Use these directly
+IsLess = A < B;
+IsGreater = A > B;
+IsEqual = A == B;
+NotEqual = A != B;
+```
 
 ---
 
@@ -96,6 +190,73 @@ NodeName:
 | `DateTimeToString` | `FormatDateTimeAsTime` or `FormatDateTimeAsDate` |
 | `TimeSpanToString` | `FormatTimespan` |
 | `JoinStrings` | `StringJoin` |
+| `Sin` or `SinFloat` | `Sin_Float` |
+| `Distance` | `Distance_Float3` |
+| `PackFloat3` | `Pack_Float3` |
+
+### Multi-Output Nodes (Dot Notation)
+Some nodes have multiple outputs. Access them with `.OutputName`:
+
+```protograph
+// GlobalTransform has multiple outputs
+Transform = Slot->GlobalTransform;
+Position = Transform.GlobalPosition;    // float3
+Rotation = Transform.GlobalRotation;    // floatQ
+Scale = Transform.GlobalScale;          // float3
+
+// Or chain directly
+Position = Slot->GlobalTransform.GlobalPosition;
+```
+
+**Common multi-output nodes:**
+- `GlobalTransform` → `.GlobalPosition`, `.GlobalRotation`, `.GlobalScale`
+- `LocalTransform` → `.LocalPosition`, `.LocalRotation`, `.LocalScale`
+- `UnpackXYZ` → `.X`, `.Y`, `.Z`
+
+---
+
+## CRITICAL: Continuous Update Patterns
+
+### Every-Frame Updates with LocalUpdate
+Use `LocalUpdate` with a switch statement for code that runs every frame:
+
+```protograph
+where {
+    store AccumulatedTime: float;
+
+    NewTime = AccumulatedTime + DeltaTime;
+
+    switch LocalUpdate
+    | OnUpdate |> impulse {
+        AccumulatedTime <- NewTime;
+        // Other per-frame operations...
+    };
+}
+```
+
+### Timed Updates with SecondsTimer
+For periodic updates (not every frame):
+
+```protograph
+where {
+    switch SecondsTimer(Interval=1.0f)
+    | OnUpdate |> impulse {
+        // Runs every 1 second
+    };
+}
+```
+
+### Conditional Values
+Use `ValueConditional<T>` for ternary-like logic:
+
+```protograph
+// If IsMoving is true, use 0.0f, otherwise use DeltaTime
+TimeIncrement = ValueConditional<float>(
+    Condition=IsStationary,
+    OnTrue=DeltaTime,
+    OnFalse=0.0f
+);
+```
 
 ---
 
@@ -258,6 +419,10 @@ Complete Flux SDK documentation in `docs/flux-sdk/`:
 7. Check if nodes need `User` or `UserRoot` input
 8. Remember `display()` only shows on nodes, not in world space
 9. **Write source files to `source/` directory** (e.g., `source/MyModule.pg`)
+10. **`store`/`sync`/`local` go INSIDE `where {}`** - NOT in header!
+11. **Use `in X: Slot`** not `in X: Slot element` for easier Resonite connection
+12. **Use arithmetic operators** (`+`, `-`, `*`, `/`) not verbose nodes
+13. **Check Lessons Learned section** for patterns from previous modules
 
 **Before writing code:**
 ```bash
@@ -273,31 +438,41 @@ grep -A10 "^HeadPosition:" froox-nodes.yaml
 
 **Code patterns:**
 ```protograph
-// Correct module declaration
+// Correct module structure
 module MyModule  // PascalCase, matches filename MyModule.pg
 
-// Correct user info access
-User = LocalUser;
-Username = User->UserUsername;
-IsHost = User->IsUserHost;
+in TargetSlot: Slot           // Use plain Slot, not "Slot element"
+out Result: float
 
-// Correct position access (needs UserRoot)
-UserRoot = User->UserUserRoot;
-Pos = UserRoot->HeadPosition;
+where {
+    // Variables go INSIDE where block
+    store PreviousValue: float;
+    sync SharedState: int;
 
-// BEST: FormatString with explicit object casting
+    // Use arithmetic operators directly
+    Computed = PreviousValue + 1.0f * 0.5f;
+
+    // Access multi-output nodes with dot notation
+    Position = TargetSlot->GlobalTransform.GlobalPosition;
+
+    // Conditional values
+    Value = ValueConditional<float>(Condition=IsTrue, OnTrue=1.0f, OnFalse=0.0f);
+
+    // Every-frame updates
+    switch LocalUpdate
+    | OnUpdate |> impulse {
+        PreviousValue <- Computed;
+        SetLocalScale(Instance=TargetSlot, Scale=Pack_Float3(X=1.0f, Y=1.0f, Z=1.0f));
+    };
+}
+```
+
+**FormatString pattern:**
+```protograph
 Output = FormatString(
-    Format="User: {0} | FPS: {1} | Ping: {2}ms",
-    Parameters=[
-        Username->as<object>,
-        FPS->as<object>,
-        Ping->as<object>
-    ]
+    Format="User: {0} | FPS: {1}",
+    Parameters=[Username->as<object>, FPS->as<object>]
 );
-
-// Alternative: ConcatenateString for simple cases
-NumStr = Value->ToString_Int;
-Display = ConcatenateString("Count: ", NumStr);
 ```
 
 ---
@@ -337,6 +512,12 @@ grep "^[A-Z]" froox-nodes.yaml | wc -l
 - `ToString_*` - Type to string (40+ nodes)
 - `Format*` - Formatting nodes (6 nodes)
 - `Concatenate*` - String joining (5 nodes)
+- `Sin_*`, `Cos_*` - Trig functions by type
+- `Distance_*` - Distance calculations by type
+- `Pack_*` - Vector packing (e.g., `Pack_Float3`)
+- `Value*<T>` - Generic value operations
+- `GlobalTransform`, `LocalTransform` - Multi-output transform nodes
+- `SetLocalScale`, `SetGlobalPosition` - Transform setters (impulse nodes)
 
 ---
 
@@ -353,6 +534,8 @@ grep "^[A-Z]" froox-nodes.yaml | wc -l
 | "Unknown Identifier" | Node doesn't exist | Verify in `froox-nodes.yaml` |
 | "unknown type for parameter" | Type inference failed | Use explicit `->as<object>` casting |
 | "Parameters has unknown type" | FormatString/interpolation issue | Use `FormatString` with `->as<object>` on each param |
+| "INTERNAL(0:0 to 0:0)" parse error | `store`/`sync`/`local` in header | Move variable declarations INSIDE `where {}` block |
+| Build writes to wrong location | Used `-d` instead of `-o` | Use `-o build/File.pg.brson` for output path |
 
 **FormatString fix pattern:**
 ```protograph
@@ -369,14 +552,16 @@ Output = FormatString(
 **Build commands:**
 ```bash
 # Standard build (source/ → build/)
-flux-sdk build -d build source/ModuleName.pg
+flux-sdk build -o build/ModuleName.pg.brson source/ModuleName.pg
 
 # Build all source files
-flux-sdk build -d build source/*.pg
+for f in source/*.pg; do flux-sdk build -o "build/$(basename "$f").brson" "$f"; done
 
 # Regenerate node reference
 flux-sdk froox-docs -o froox-nodes.yaml
 ```
+
+**Note:** `-o` sets output path, `-d` sets project directory (for module resolution, NOT output!)
 
 ---
 
@@ -409,6 +594,17 @@ flux-sdk froox-docs -o froox-nodes.yaml
 3. Check ProtoFlux node connections
 4. **Wire outputs to visual components manually** (see below)
 
+**Connecting Slot Inputs:**
+
+For `in X: Slot` (ReferenceSource - recommended):
+1. Open Inspector on the ProtoFlux input slot
+2. Find `ReferenceSource<Slot>` component
+3. Drag target slot reference → drop on `Reference` field
+
+For `in X: Slot element` (ElementSource - harder):
+1. Either parent the target under the input slot, OR
+2. Open Inspector, find `ElementSource<Slot>`, set `Target` field
+
 **IMPORTANT: `display()` only shows values on nodes, NOT in world space!**
 
 To see output in world:
@@ -429,7 +625,7 @@ To see output in world:
 
 1. **Research nodes first** - Search `froox-nodes.yaml` for needed functionality
 2. **Write code** (protograph-dev agent) - Write to `source/` directory
-3. **Build** - Run `flux-sdk build -d build source/ModuleName.pg`
+3. **Build** - Run `flux-sdk build -o build/ModuleName.pg.brson source/ModuleName.pg`
 4. **Fix errors** (flux-build agent) - Reference YAML for corrections
 5. **Deploy** (resonite-deploy) - Import `.brson` from `build/` into Resonite
 
@@ -439,10 +635,10 @@ To see output in world:
 
 ```bash
 # Build a single module (source/ → build/)
-flux-sdk build -d build source/ModuleName.pg
+flux-sdk build -o build/ModuleName.pg.brson source/ModuleName.pg
 
-# Build all modules
-flux-sdk build -d build source/*.pg
+# Build all modules in source/
+for f in source/*.pg; do flux-sdk build -o "build/$(basename "$f").brson" "$f"; done
 
 # Regenerate node reference
 flux-sdk froox-docs -o froox-nodes.yaml
@@ -456,7 +652,84 @@ grep -i "searchterm" froox-nodes.yaml
 grep "^[A-Z]" froox-nodes.yaml | wc -l
 ```
 
+**Remember:** `-o` = output file, `-d` = project directory (NOT output!)
+
 ## External Documentation
 - Flux SDK: https://flux-sdk.samsmucny.com/
 - Resonite ProtoFlux: https://wiki.resonite.com/ProtoFlux
 - VS Code Extension: papaltine.protograph
+
+---
+
+## Lessons Learned (Self-Updating)
+
+This section captures discoveries from building real modules. **Update this when you learn something new!**
+
+### From BouncingCube (2024-12)
+A module that scales a cube up/down but pauses when the cube is moving.
+
+**Discoveries:**
+1. **Build flag confusion:** `-d` is project directory, `-o` is output path
+2. **Variable location:** `store`/`sync`/`local` go INSIDE `where {}`, not in header
+3. **Input types matter:** `in X: Slot element` (ElementSource) is harder to connect than `in X: Slot` (ReferenceSource)
+4. **Use arithmetic operators:** `A + B` not `ValueAdd<float>(A, B)`
+5. **Node naming patterns:**
+   - Trig functions: `Sin_Float`, `Cos_Float` (not `Sin` or `SinFloat`)
+   - Distance: `Distance_Float3` (not `Distance`)
+   - Packing: `Pack_Float3` (not `PackFloat3` or `Float3`)
+6. **Multi-output access:** `Slot->GlobalTransform.GlobalPosition` (dot notation)
+7. **Continuous updates:** `switch LocalUpdate | OnUpdate |>` pattern
+8. **Conditional values:** `ValueConditional<T>` for ternary-like behavior
+
+**Working pattern for animation with pause:**
+```protograph
+where {
+    store LastPosition: float3;
+    store AnimTime: float;
+
+    CurrentPos = Slot->GlobalTransform.GlobalPosition;
+    IsStationary = Distance_Float3(CurrentPos, LastPosition) < 0.001f;
+    TimeIncrement = ValueConditional<float>(Condition=IsStationary, OnTrue=DeltaTime, OnFalse=0.0f);
+    NewAnimTime = AnimTime + TimeIncrement;
+
+    switch LocalUpdate
+    | OnUpdate |> impulse {
+        AnimTime <- NewAnimTime;
+        LastPosition <- CurrentPos;
+    };
+}
+```
+
+---
+
+### Template for New Lessons
+
+When you discover something new while building a module, add it here:
+
+```markdown
+### From ModuleName (YYYY-MM)
+Brief description of what the module does.
+
+**Discoveries:**
+1. What you learned
+2. What failed and why
+3. What pattern worked
+
+**Working code pattern:**
+\`\`\`protograph
+// Minimal example of the pattern
+\`\`\`
+```
+
+---
+
+## Self-Improvement Protocol
+
+When building ProtoGraph modules:
+
+1. **Before coding:** Search `froox-nodes.yaml` for nodes
+2. **After errors:** Document what went wrong in Lessons Learned
+3. **After success:** Extract reusable patterns
+4. **Update CLAUDE.md:** Add new CRITICAL sections for common pitfalls
+
+This makes the documentation self-improving with each project.
