@@ -1,10 +1,26 @@
 # Local Documentation
 
-This directory contains local copies of official documentation for Flux SDK and ProtoGraph development.
+This directory contains comprehensive offline documentation for Flux SDK and Resonite development.
 
-## Flux SDK Documentation
+**Always use local documentation before external sources!**
 
-Complete ProtoGraph language reference stored in `flux-sdk/`:
+## Directory Structure
+
+```
+docs/
+├── flux-sdk/                    # ProtoGraph language reference (9 files)
+├── resonite-wiki/               # Resonite Wiki documentation
+│   ├── protoflux/              # 1,093 ProtoFlux node docs
+│   │   └── INDEX.md            # Alphabetical node listing
+│   ├── components/             # 1,519 Resonite component docs
+│   │   └── INDEX.md            # Alphabetical component listing
+│   └── *.md                    # Overview files (impulses, slots, etc.)
+└── README.md                    # This file
+```
+
+## Flux SDK Documentation (`flux-sdk/`)
+
+Complete ProtoGraph language reference:
 
 | File | Topic |
 |------|-------|
@@ -18,11 +34,57 @@ Complete ProtoGraph language reference stored in `flux-sdk/`:
 | [08-modules-and-packages.md](flux-sdk/08-modules-and-packages.md) | Module I/O, packages, dependencies |
 | [09-froox-prelude.md](flux-sdk/09-froox-prelude.md) | Available nodes and modules |
 
+## Resonite Wiki Documentation (`resonite-wiki/`)
+
+### ProtoFlux Nodes (1,093 nodes)
+
+Complete documentation for all ProtoFlux nodes scraped from wiki.resonite.com:
+
+- **Location:** `resonite-wiki/protoflux/`
+- **Index:** [resonite-wiki/protoflux/INDEX.md](resonite-wiki/protoflux/INDEX.md)
+
+### Components (1,519 components)
+
+Complete documentation for all Resonite components:
+
+- **Location:** `resonite-wiki/components/`
+- **Index:** [resonite-wiki/components/INDEX.md](resonite-wiki/components/INDEX.md)
+
+### Overview Files
+
+| File | Topic |
+|------|-------|
+| [protoflux-overview.md](resonite-wiki/protoflux-overview.md) | ProtoFlux visual programming basics |
+| [impulses.md](resonite-wiki/impulses.md) | Impulse system and execution context |
+| [dynamic-variables.md](resonite-wiki/dynamic-variables.md) | Dynamic variable system |
+| [components-overview.md](resonite-wiki/components-overview.md) | Component categories and essentials |
+| [slots-and-hierarchy.md](resonite-wiki/slots-and-hierarchy.md) | Slot system and hierarchy |
+| [rgb-cube-tutorial.md](resonite-wiki/rgb-cube-tutorial.md) | Complete beginner tutorial |
+
+## Searching Documentation
+
+```bash
+# Find a ProtoFlux node
+cat docs/resonite-wiki/protoflux/LocalUser.md
+
+# Search ProtoFlux nodes for a concept
+grep -ril "impulse" docs/resonite-wiki/protoflux/ | head -20
+
+# Find a component
+cat docs/resonite-wiki/components/TextRenderer.md
+
+# Search components for a feature
+grep -ril "collider" docs/resonite-wiki/components/ | head -20
+
+# Browse all nodes/components
+cat docs/resonite-wiki/protoflux/INDEX.md
+cat docs/resonite-wiki/components/INDEX.md
+```
+
 ## Source Attribution
 
-Documentation sourced from [Flux SDK](https://flux-sdk.samsmucny.com/) by Sam (Papaltine) Smucny.
-
-Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+- **Flux SDK:** Sourced from [Flux SDK](https://flux-sdk.samsmucny.com/) by Sam (Papaltine) Smucny. Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+- **Resonite Wiki:** Scraped from [wiki.resonite.com](https://wiki.resonite.com/) using crawl4ai. Licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 ## Quick Reference
 

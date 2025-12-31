@@ -1,0 +1,80 @@
+# Component:FlatLitToonMaterial
+
+> Source: https://wiki.resonite.com/Component:FlatLitToonMaterial
+
+Collapse **Component image**
+
+[File:FlatLitToonMaterialComponent.png](https://wiki.resonite.com/index.php?title=Special:Upload&wpDestFile=FlatLitToonMaterialComponent.png "File:FlatLitToonMaterialComponent.png") **Flat Lit Toon Material** component as seen in the [Scene Inspector](https://wiki.resonite.com/Scene_Inspector "Scene Inspector")
+
+The **FlatLitToonMaterial** is a material that used to be used before the [xiexe toon material](https://wiki.resonite.com/Component:XiexeToonMaterial "Component:XiexeToonMaterial").
+
+![](https://wiki.resonite.com/images/b/b7/DangerIcon.svg)
+
+This game element or item is obsolete. Meaning it has been tagged as obsolete in code and shouldn't be used and has no function to the user
+
+
+## Fields
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `persistent` | **[Bool](https://wiki.resonite.com/Type:Bool "Type:Bool")** | Determines whether or not this item will be saved to the server. |
+| `UpdateOrder` | **[Int](https://wiki.resonite.com/Type:Int "Type:Int")** | Controls the order in which this component is updated. |
+| `Enabled` | **[Bool](https://wiki.resonite.com/Type:Bool "Type:Bool")** | Controls whether or not this component is enabled. Some components stop their functionality when this field is disabled, but some don't. |
+| `HighPriorityIntegration` | **[Bool](https://wiki.resonite.com/Type:Bool "Type:Bool")** | If true, integrating this asset (e.g. processing procedural assets) gets higher priority than assets with this flag off. An example is user laser procedural meshes. |
+| `_shader` | **[Shader](https://wiki.resonite.com/Type:Shader "Type:Shader")** | Internal. |
+| `MainTexture` | **[ITexture2D](https://wiki.resonite.com/Type:ITexture2D "Type:ITexture2D")** | The main color map of the material. |
+| `ColorMask` | **[ITexture2D](https://wiki.resonite.com/Type:ITexture2D "Type:ITexture2D")** | What colors behind the material should make it through the filter. |
+| `EmissionMap` | **[ITexture2D](https://wiki.resonite.com/Type:ITexture2D "Type:ITexture2D")** | The glow or emission color map. |
+| `NormalMap` | **[ITexture2D](https://wiki.resonite.com/Type:ITexture2D "Type:ITexture2D")** | The normal map is used as a way to change the appearance of a surface when shined on by lights, to give the illusion of a raised surface. |
+| `MainTextureScale` | **[Float2](https://wiki.resonite.com/Type:Float2 "Type:Float2")** | The UV scaling of the main texture. |
+| `MainTextureOffset` | **[Float2](https://wiki.resonite.com/Type:Float2 "Type:Float2")** | The UV offset of the main texture. |
+| `ColorMaskScale` | **[Float2](https://wiki.resonite.com/Type:Float2 "Type:Float2")** | The UV scaling of the color mask texture. |
+| `ColorMaskOffset` | **[Float2](https://wiki.resonite.com/Type:Float2 "Type:Float2")** | The UV offset of the color mask texture. |
+| `EmissionMapScale` | **[Float2](https://wiki.resonite.com/Type:Float2 "Type:Float2")** | The UV scaling of the emission texture. |
+| `EmissionMapOffset` | **[Float2](https://wiki.resonite.com/Type:Float2 "Type:Float2")** | The UV offset of the emission texture. |
+| `NormalMapScale` | **[Float2](https://wiki.resonite.com/Type:Float2 "Type:Float2")** | The UV scaling of the normal map texture. |
+| `NormalMapOffset` | **[Float2](https://wiki.resonite.com/Type:Float2 "Type:Float2")** | The UV offset of the normal texture. |
+| `AlphaCutoff` | **[Float](https://wiki.resonite.com/Type:Float "Type:Float")** | If `BlendMode` is set to cutout, discard rendering of pixels for the surface that fall below this alpha threshold. |
+| `Color` | **[ColorX](https://wiki.resonite.com/Type:ColorX "Type:ColorX")** | The surface color texture of the material. |
+| `EmissionColor` | **[ColorX](https://wiki.resonite.com/Type:ColorX "Type:ColorX")** | The tint of the emission color. |
+| `BlendMode` | **[BlendMode](https://wiki.resonite.com/Type:BlendMode "Type:BlendMode")** | How to blend this material's colors vs what it rendered on top of. |
+| `ZWrite` | **[ZWrite](https://wiki.resonite.com/Type:ZWrite "Type:ZWrite")** | whether this material should respect the distance it is from the camera. |
+| `Shadow` | **[Float](https://wiki.resonite.com/Type:Float "Type:Float")** | The strength of shadow on the toon material. |
+| `Outline` | **[OutlineStyle](https://wiki.resonite.com/Component:FlatLitToonMaterial#OutlineStyle)** | The outline style to use. |
+| `OutlineWidth` | **[Float](https://wiki.resonite.com/Type:Float "Type:Float")** | The thickness of the outline around the mesh. |
+| `OutlineColor` | **[ColorX](https://wiki.resonite.com/Type:ColorX "Type:ColorX")** | The color of the outline around the mesh. |
+| `OutlineTint` | **[Float](https://wiki.resonite.com/Type:Float "Type:Float")** | How much to tint the outline around the mesh. |
+| `OffsetFactor` | **[Float](https://wiki.resonite.com/Type:Float "Type:Float")** | How much this material should be pushed forwards or backwards on the depth buffer, based on the polygon's slope relative to the camera (i.e. polygons parallel to the camera will not be affected by this).[\[1\]](https://wiki.resonite.com/Component:FlatLitToonMaterial#cite_note-Material_OffsetFactor/Units_Desc-1) |
+| `OffsetUnits` | **[Float](https://wiki.resonite.com/Type:Float "Type:Float")** | How much this material should be pushed forwards or backwards on the depth buffer (regardless of the polygon's slope relative to the camera), in units equal to the smallest possible difference for the rendering device being used.[\[1\]](https://wiki.resonite.com/Component:FlatLitToonMaterial#cite_note-Material_OffsetFactor/Units_Desc-1) |
+| `RenderQueue` | **[Int](https://wiki.resonite.com/Type:Int "Type:Int")** | changes at which point a material renders on the render stack |
+
+Fields
+Collapse
+
+## OutlineStyle
+
+| Name | Value | Description |
+| --- | --- | --- |
+| `None` | 0 | No outline. |
+| `Tinted` | 1 | Outline that is tinted based on the mesh it is outlining around. |
+| `Colored` | 2 | Outline is a solid color |
+
+Values
+
+## Usage
+
+Obsolete.
+
+## Examples
+
+Obsolete.
+
+## See Also
+
+- [Component:XiexeToonMaterial](https://wiki.resonite.com/Component:XiexeToonMaterial "Component:XiexeToonMaterial")
+
+1. ↑ [Jump up to: 1.0](https://wiki.resonite.com/Component:FlatLitToonMaterial#cite_ref-Material_OffsetFactor/Units_Desc_1-0)[1.1](https://wiki.resonite.com/Component:FlatLitToonMaterial#cite_ref-Material_OffsetFactor/Units_Desc_1-1)[https://docs.unity3d.com/6000.2/Documentation/Manual/SL-Offset.html](https://docs.unity3d.com/6000.2/Documentation/Manual/SL-Offset.html)
+
+Retrieved from " [https://wiki.resonite.com/index.php?title=Component:FlatLitToonMaterial&oldid=105823](https://wiki.resonite.com/index.php?title=Component:FlatLitToonMaterial&oldid=105823)"
+
+Contents

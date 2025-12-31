@@ -1,2 +1,4 @@
 *.pg
 *.pg.brson
+scripts/*
+*.py

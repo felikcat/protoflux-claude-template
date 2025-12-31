@@ -1,0 +1,41 @@
+# ProtoFlux:SetGlobalRotation
+
+> Source: https://wiki.resonite.com/ProtoFlux:SetGlobalRotation
+
+Set Global Rotation
+
+\*
+
+Next
+
+Instance
+
+Rotation
+
+Transform
+
+The **Set Global Rotation** node sets the input slot's rotation to the provided floatQ value in [global coordinate space](https://wiki.resonite.com/Coordinate_spaces#Global_vs._Local "Coordinate spaces").
+
+## Inputs
+
+### \\* ( [Call](https://wiki.resonite.com/Impulses "Impulses"))
+
+Sets the Instance slot's global roation when an impulse is received.
+
+### Instance ( [Slot](https://wiki.resonite.com/Slot "Slot"))
+
+The slot whose global rotation is set. Default is null, the node does not function without this input.
+
+### Rotation ( [floatQ](https://wiki.resonite.com/Type:FloatQ "Type:FloatQ"))
+
+The global rotation the input Instance slot is set to. Default is \[0;0;0\].
+
+## Outputs
+
+### Next ( [Continuation](https://wiki.resonite.com/Impulses "Impulses"))
+
+An impulse is fired whenever the Instance slot's rotation is set after the node receives an impulse. No impulse is fired from this output if the Instance input is null.
+
+Retrieved from " [https://wiki.resonite.com/index.php?title=ProtoFlux:SetGlobalRotation&oldid=110679](https://wiki.resonite.com/index.php?title=ProtoFlux:SetGlobalRotation&oldid=110679)"
+
+Contents

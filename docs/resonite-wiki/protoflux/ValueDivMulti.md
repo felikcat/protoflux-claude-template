@@ -1,0 +1,33 @@
+# ProtoFlux:ValueDivMulti
+
+> Source: https://wiki.resonite.com/ProtoFlux:ValueDivMulti
+
+÷
+
+Inputs
+
+\*
+
++
+
+-
+
+Operators
+
+The **Value Div Multi** node takes in a list of values and divides from the first given value onwards. The first value is always the starting point. Then the second value will divide from the first, giving the result for the third input to divide from, so on and so fourth. More information can be found on the [Div](https://wiki.resonite.com/ProtoFlux:Div "ProtoFlux:Div") node page.
+
+## Inputs
+
+### Inputs (Pseudo-Generic)
+
+The numbers to divide with, using the first value as a starting point.
+
+## Outputs
+
+### \\* (Pseudo-Generic)
+
+The final result of all the division operations.
+
+Retrieved from " [https://wiki.resonite.com/index.php?title=ProtoFlux:ValueDivMulti&oldid=111049](https://wiki.resonite.com/index.php?title=ProtoFlux:ValueDivMulti&oldid=111049)"
+
+Contents
